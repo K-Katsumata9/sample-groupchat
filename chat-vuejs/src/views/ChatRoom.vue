@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <NavBar />
-    <ChatWindow v-on:connectCable="connectCable" v-bind:messages="messages" />
+    <ChatWindow v-on:connectCable="connectCable" v-bind:messages="formattedMessages" ref="chatWindow" />
     <NewChatForm v-on:connectCable="connectCable" />
   </div>
 </template>
@@ -12,6 +12,8 @@ import ChatWindow from '../components/ChatWindow.vue'
 import NewChatForm from '../components/NewChatForm.vue'
 import axios from 'axios'
 import ActionCable from 'actioncable'
+import { formatDistanceToNow } from 'date-fns'
+import { ja } from 'date-fns/locale'
 
   export default {
     components: {
@@ -22,6 +24,15 @@ import ActionCable from 'actioncable'
     data () {
       return {
         messages: [],
+      }
+    },
+    computed: {
+      formattedMessages () {
+        if (!this.messages.length) { return [] }
+        return this.messages.map(message => {
+          let time = formatDistanceToNow(new Date(message.created_at), { locale: ja })
+          return { ...message, created_at: time }
+        })        
       }
     },
     methods: {
@@ -53,10 +64,12 @@ import ActionCable from 'actioncable'
       const cable = ActionCable.createConsumer('ws://127.0.0.1:3000/cable')
         this.messageChannel = cable.subscriptions.create('RoomChannel', {
           connected: () => {
-            this.getMessages()
+            this.getMessages().then(() => {
+            this.$refs.chatWindow.scrollToBottom()})            
           },
           received: () => {
-            this.getMessages()
+            this.getMessages().then(() => {
+            this.$refs.chatWindow.scrollToBottom()})
           }
         })
     },
