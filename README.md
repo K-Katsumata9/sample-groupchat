@@ -1,2 +1,1 @@
-# sample-groupchat
-## リアルタイムチャットアプリの作成
+## ActionCableを使用したリアルタイムチャットアプリの作成
